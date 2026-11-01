@@ -5,7 +5,7 @@ A React and Vite student dashboard connected to n8n Cloud. Assignments, statisti
 ## Local development
 
 1. Run `npm install`.
-2. Copy `.env.example` to `.env.local` and set `VITE_N8N_ASSIGNMENTS_URL` to the production Assignments Read webhook. The sample URL is the one supplied for this project.
+2. Copy `.env.example` to `.env.local` and set `N8N_ASSIGNMENTS_URL` to your production Assignments Read webhook.
 3. Run `npm run dev`.
 4. Run `npm run lint` and `npm run build` before deployment.
 
@@ -17,12 +17,12 @@ Import the GitHub repository into Vercel. Use the Vite preset, `npm run build`, 
 
 | Variable | Purpose |
 | --- | --- |
-| `VITE_N8N_ASSIGNMENTS_URL` | Assignments Read webhook URL; required |
+| `N8N_ASSIGNMENTS_URL` | Assignments Read webhook URL; required, server-only |
 | `N8N_CHAT_URL` | Chat Trigger URL; optional because this project's supplied URL is the server-side default |
 | `N8N_ASSIGNMENTS_AUTH_HEADER` | Optional complete `Authorization` header value for the read webhook |
 | `N8N_CHAT_AUTH_HEADER` | Optional complete `Authorization` header value for the chat webhook |
 
-The `VITE_` prefix is required by this project's configuration, but a URL with that prefix is not a secret. The frontend never reads it. Keep credentials in the unprefixed server-only variables. If a workflow needs n8n User Auth or another interactive login, configure an appropriate server-side authentication flow before making the app public. A shared Basic Auth or bearer value can be passed through the server-only header variables.
+The assignments URL is read only by the serverless function and is not bundled into the browser app. Select Secret for webhook URLs and authentication headers in Vercel. Config is suitable only for values you are comfortable showing to project members. Remove the old `VITE_N8N_ASSIGNMENTS_URL` variable after adding the new name, then redeploy because environment changes apply only to new deployments. The `/api/assignments` route still returns assignment data to site visitors, so protect the app if those assignments must be private. If a workflow needs n8n User Auth or another interactive login, configure an appropriate server-side authentication flow before making the app public. A shared Basic Auth or bearer value can be passed through the server-only header variables.
 
 ## Assignments Read API contract
 
