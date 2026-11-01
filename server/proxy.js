@@ -8,7 +8,7 @@ async function readBody(req) {
   return body
 }
 
-export async function proxyRequest(req, res, { method, url, auth }) {
+export async function proxyRequest(req, res, { method, url, auth, timeoutMs = 20000 }) {
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Cache-Control', 'no-store')
   if (req.method !== method) {
@@ -29,7 +29,7 @@ export async function proxyRequest(req, res, { method, url, auth }) {
     return res.end(JSON.stringify({ error: 'The n8n endpoint configuration is invalid.' }))
   }
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 20000)
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const headers = { Accept: 'application/json' }
     if (method === 'POST') headers['Content-Type'] = 'application/json'

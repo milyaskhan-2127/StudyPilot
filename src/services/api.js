@@ -48,7 +48,9 @@ function parseChatText(data) {
   const source = Array.isArray(data) ? data[0] : data
   const text = source?.output ?? source?.text ?? source?.message ?? source?.response
   if (typeof text === 'string' && text.trim()) return text
+  if (text?.type === 'text' && typeof text.text === 'string' && text.text.trim()) return text.text
   if (typeof source === 'string' && source.trim()) return source
+  if (source?.executionStarted) throw new Error('The workflow started but has not returned a chat reply. Check its n8n execution and response settings.')
   throw new Error('The AI returned an empty or unsupported response.')
 }
 
@@ -59,12 +61,12 @@ export async function sendChatMessage(sessionId, chatInput) {
 
 export async function loadChatSession(sessionId) {
   const data = await request('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'loadPreviousSession', sessionId }) })
-  const list = Array.isArray(data) ? data : data?.messages ?? data?.data?.messages
+  const list = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : data?.messages ?? data?.data?.messages
   if (!Array.isArray(list)) return []
   return list.map((entry, index) => ({
     id: `history-${index}`,
-    role: ['human', 'user'].includes(String(entry.type ?? entry.role).toLowerCase()) ? 'user' : 'assistant',
-    text: typeof entry.message === 'string' ? entry.message : typeof entry.content === 'string' ? entry.content : entry.text ?? '',
+    role: ['human', 'user'].includes(String(entry.type ?? entry.role).toLowerCase()) || String(entry.id ?? '').includes('HumanMessage') ? 'user' : 'assistant',
+    text: typeof entry.kwargs?.content === 'string' ? entry.kwargs.content : typeof entry.message === 'string' ? entry.message : typeof entry.content === 'string' ? entry.content : entry.text ?? '',
     time: entry.createdAt ?? entry.timestamp ?? null,
   })).filter(entry => entry.text)
 }
